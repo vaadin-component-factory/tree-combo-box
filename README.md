@@ -7,9 +7,6 @@ providers, i.e. TreeDataProvider, it supports filtering, but not adding new item
 
 TreeComboBox allows filtering out items organized in a hierarchy and selecting one.
 
-### Vaadin Prime
-This component is part of Vaadin Prime. Still, open source you need to have a valid CVAL license in order to use it. Read more at: vaadin.com/pricing
-
 ## Basic Usage
 ```java
 DepartmentData departmentData = new DepartmentData();
@@ -26,13 +23,6 @@ The Demo can be run by executing the maven goal:
 After server startup, you'll be able find the demo at [http://localhost:8080/](http://localhost:8080/)
 
 
-## License & Author
-
-This Add-on is distributed under [Commercial Vaadin Add-on License version 3](http://vaadin.com/license/cval-3) (CVALv3). For license terms, see LICENSE.txt.
-
-Component Factory Enhanced Dialog is written by Vaadin Ltd.
-
-
 ## Setting up for development:
 
 Clone the project in GitHub (or fork it if you plan on contributing)
@@ -44,3 +34,14 @@ git clone git@github.com:vaadin-component-factory/tree-combo-box.git
 to install project to your maven repository run
  
 ```mvn install```
+
+## License & Author
+
+This Add-on is distributed under Apache 2.0
+
+Component Factory TreeCombobox is written by Vaadin Ltd.
+
+### Sponsored development
+
+Major pieces of development of this add-on has been sponsored by multiple customers of Vaadin. Read more  about Expert on Demand at: [Support](https://vaadin.com/support) and  [Pricing](https://vaadin.com/pricing)
+
