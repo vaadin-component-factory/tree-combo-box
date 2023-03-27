@@ -141,7 +141,7 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
         });
         popup.setFor("open-button");
         popup.add(tree);
-        tree.setHeightByRows(true);
+        tree.setAllRowsVisible(true);
         setWidth("300px");
         getContent().setFlexGrow(1, filterField);
         getContent().setMargin(false);
@@ -181,14 +181,14 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
 
     /**
      * Constructs a new TreeComboBox Component with given caption and
-     * {@code HierarchicalDataProvider}.
+     * {@code TreeDataProvider}.
      *
      * @param valueProvider
      *            the item caption provider to use, not <code>null</code>
      * @param dataProvider
      *            the hierarchical data provider for component
      */
-    public TreeComboBox(HierarchicalDataProvider<T, ?> dataProvider,
+    public TreeComboBox(TreeDataProvider<T> dataProvider,
             ValueProvider<T, String> valueProvider) {
         this(valueProvider);
 
@@ -205,14 +205,13 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
         return tree.asSingleSelect().getValue();
     }
 
-    @Override
     public void setDataProvider(DataProvider<T, ?> dataProvider) {
         if (!(dataProvider instanceof TreeDataProvider)) {
             throw new IllegalArgumentException(
                     "DataProvider needs to be TreeDataProvider");
         }
         this.dataProvider = (TreeDataProvider<T>) dataProvider;
-        tree.setDataProvider(dataProvider);
+        tree.setDataProvider(this.dataProvider);
     }
 
     @Override
@@ -287,6 +286,7 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
     @Override
     public void setDataProvider(
             HierarchicalDataProvider<T, ?> hierarchicalDataProvider) {
-        tree.setDataProvider(hierarchicalDataProvider);
+    	// cast to make sure we call the right method
+        setDataProvider((DataProvider<T, ?>) hierarchicalDataProvider);
     }
 }
