@@ -9,7 +9,7 @@
     <inceptionYear>2020</inceptionYear>
 
     <properties>
-        <vaadin.version>24.0.0</vaadin.version>
+        <vaadin.version>24.0.2</vaadin.version>
 
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
