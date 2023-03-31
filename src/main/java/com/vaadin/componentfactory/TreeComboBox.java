@@ -29,6 +29,7 @@ import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
@@ -45,6 +46,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.function.SerializablePredicate;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.shared.Registration;
+import com.vaadin.flow.theme.lumo.LumoIcon;
 
 /**
  * This is hierarchical ComboBox type single select component. It currently
@@ -136,7 +138,8 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
                     popup.setOpened(true);
                     tree.focus();
                 });
-        openButton.setIcon(VaadinIcon.CHEVRON_DOWN.create());
+        openButton.setIcon(LumoIcon.ANGLE_DOWN.create());
+        openButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         openButton.setId("open-button");
         openButton.addClickListener(event -> {
             popup.setOpened(true);
@@ -144,12 +147,13 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
         popup.setFor("open-button");
         popup.add(tree);
         tree.setAllRowsVisible(true);
+        filterField.setPrefixComponent(openButton);
         setWidth("300px");
         getContent().setFlexGrow(1, filterField);
         getContent().setMargin(false);
         getContent().setSpacing(false);
         getContent().setDefaultVerticalComponentAlignment(Alignment.END);
-        getContent().add(openButton, filterField, popup);
+        getContent().add(filterField, popup);
     }
 
     private void selectFilteredItem(T item) {

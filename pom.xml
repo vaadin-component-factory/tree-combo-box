@@ -3,7 +3,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>treecombobox</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
     <name>TreeComboBox</name>
     <description>ComboBox with hierarchy</description>
     <inceptionYear>2020</inceptionYear>
