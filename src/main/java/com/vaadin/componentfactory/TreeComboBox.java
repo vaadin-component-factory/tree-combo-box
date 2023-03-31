@@ -114,12 +114,14 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
                 if (getValue() != null) {
                     tree.deselect(getValue());
                 }
+                dataProvider.setFilter(null);
             }
         });
         filterField.setClearButtonVisible(true);
         filterField.setAutoselect(true);
         filterField.setValueChangeMode(ValueChangeMode.TIMEOUT);
         filterField.setValueChangeTimeout(1000);
+        filterField.getElement().executeJs("this.inputElement.setAttribute('autocomplete','off')");
         tree.asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 filterField
