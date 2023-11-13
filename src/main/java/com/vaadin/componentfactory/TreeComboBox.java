@@ -22,17 +22,14 @@ package com.vaadin.componentfactory;
 
 import org.vaadin.tatu.Tree;
 
-import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
-import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Focusable;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HasHierarchicalDataProvider;
@@ -45,6 +42,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.function.SerializablePredicate;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.shared.Registration;
+import com.vaadin.flow.theme.lumo.LumoIcon;
 
 /**
  * This is hierarchical ComboBox type single select component. It currently
@@ -56,7 +54,8 @@ import com.vaadin.flow.shared.Registration;
  * @param <T>
  *            Bean type used in TreeData
  */
-public class TreeComboBox<T> extends Composite<HorizontalLayout>
+@Tag("div")
+public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
         implements SingleSelect<TreeComboBox<T>, T>,
         HasHierarchicalDataProvider<T>, Focusable, HasSize, HasElement {
 
@@ -65,7 +64,6 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
     }
 
     private ValueProvider<T, String> valueProvider;
-    private TreeDataProvider<T> dataProvider;
 
     private TextField filterField = new TextField();
     private Button openButton = new Button();
@@ -80,12 +78,13 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
      *            the item caption provider to use, not <code>null</code>
      */
     public TreeComboBox(ValueProvider<T, String> valueProvider) {
+        super(null);
         this.valueProvider = valueProvider;
         this.tree = new Tree<>(valueProvider);
         filterField.addValueChangeListener(event -> {
             if (event.isFromClient() && !event.getValue().isEmpty()) {
                 popup.setOpened(true);
-                dataProvider.setFilter(item -> {
+                ((TreeDataProvider<T>) getDataProvider()).setFilter(item -> {
                     switch (filterMode) {
                     case EXACT_CASE:
                         return this.valueProvider.apply(item)
@@ -114,18 +113,23 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
                 if (getValue() != null) {
                     tree.deselect(getValue());
                 }
+                ((TreeDataProvider<T>) getDataProvider()).setFilter(null);
             }
         });
         filterField.setClearButtonVisible(true);
         filterField.setAutoselect(true);
         filterField.setValueChangeMode(ValueChangeMode.TIMEOUT);
         filterField.setValueChangeTimeout(1000);
-        tree.asSingleSelect().addValueChangeListener(event -> {
-            if (event.getValue() != null) {
-                filterField
-                        .setValue(this.valueProvider.apply(event.getValue()));
+        filterField.getElement().executeJs(
+                "this.inputElement.setAttribute('autocomplete','off')");
+        tree.addSelectionListener(event -> {
+            if (!event.getSelected().isEmpty()) {
+                T value = event.getSelected().stream().findFirst().get();
+                filterField.setValue(this.valueProvider.apply(value));
                 popup.setOpened(false);
                 filterField.focus();
+                fireEvent(new ComponentValueChangeEvent<>(this, this, value,
+                        event.isFromClient()));
             }
         });
 
@@ -134,7 +138,8 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
                     popup.setOpened(true);
                     tree.focus();
                 });
-        openButton.setIcon(VaadinIcon.CHEVRON_DOWN.create());
+        openButton.setIcon(LumoIcon.ANGLE_DOWN.create());
+        openButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         openButton.setId("open-button");
         openButton.addClickListener(event -> {
             popup.setOpened(true);
@@ -142,20 +147,18 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
         popup.setFor("open-button");
         popup.add(tree);
         tree.setHeightByRows(true);
+        filterField.setPrefixComponent(openButton);
         setWidth("300px");
-        getContent().setFlexGrow(1, filterField);
-        getContent().setMargin(false);
-        getContent().setSpacing(false);
-        getContent().setDefaultVerticalComponentAlignment(Alignment.END);
-        getContent().add(openButton, filterField, popup);
+        getElement().appendChild(filterField.getElement());
+        getElement().appendChild(popup.getElement());
     }
 
     private void selectFilteredItem(T item) {
         HierarchicalQuery<T, SerializablePredicate<T>> query = new HierarchicalQuery<>(
-                dataProvider.getFilter(), item);
-        int size = dataProvider.size(query);
+                ((TreeDataProvider<T>) getDataProvider()).getFilter(), item);
+        int size = getDataProvider().size(query);
         if (size == 1) {
-            dataProvider.fetch(query).findFirst().ifPresent(i -> {
+            getDataProvider().fetch(query).findFirst().ifPresent(i -> {
                 tree.expand(i);
                 selectFilteredItem(i);
             });
@@ -211,13 +214,12 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
             throw new IllegalArgumentException(
                     "DataProvider needs to be TreeDataProvider");
         }
-        this.dataProvider = (TreeDataProvider<T>) dataProvider;
         tree.setDataProvider(dataProvider);
     }
 
     @Override
     public HierarchicalDataProvider<T, SerializablePredicate<T>> getDataProvider() {
-        return dataProvider;
+        return tree.getDataProvider();
     }
 
     @Override
@@ -244,13 +246,6 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
     @Override
     public void focus() {
         filterField.focus();
-    }
-
-    @Override
-    public Registration addValueChangeListener(
-            ValueChangeListener<? super ComponentValueChangeEvent<TreeComboBox<T>, T>> listener) {
-        return tree.asSingleSelect().addValueChangeListener(
-                (ValueChangeListener<? super ComponentValueChangeEvent<Grid<T>, T>>) listener);
     }
 
     /**
@@ -280,7 +275,7 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
      */
     @Override
     public void setWidth(String width) {
-        this.getContent().setWidth(width);
+        filterField.setWidth(width);
         tree.setWidth(width);
     }
 
@@ -288,5 +283,20 @@ public class TreeComboBox<T> extends Composite<HorizontalLayout>
     public void setDataProvider(
             HierarchicalDataProvider<T, ?> hierarchicalDataProvider) {
         tree.setDataProvider(hierarchicalDataProvider);
+    }
+
+    @Override
+    protected void setPresentationValue(T newPresentationValue) {
+        tree.select(newPresentationValue);
+    }
+
+    /**
+     * When true allow selecting only the leaf nodes
+     * 
+     * @param selectOnlyLeafs
+     *            boolean value.
+     */
+    public void setSelectOnlyLeafs(boolean selectOnlyLeafs) {
+        tree.setSelectOnlyLeafs(selectOnlyLeafs);
     }
 }
