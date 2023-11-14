@@ -344,6 +344,23 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
         filterField.setClearButtonVisible(clearButtonVisible);
     }
 
+    /**
+     * When set to true, user cannot type into input field, only select values
+     * from the popup.
+     * 
+     * @param disableFiltering
+     *            boolean value
+     */
+    public void setDisableFiltering(boolean disableFiltering) {
+        if (disableFiltering) {
+            filterField.getElement().executeJs(
+                    "this.inputElement.setAttribute('readonly', true);");
+        } else {
+            filterField.getElement().executeJs(
+                    "this.inputElement.removeAttribute('readonly');");
+        }
+    }
+
     @Override
     public void setErrorMessage(String errorMessage) {
         filterField.setErrorMessage(errorMessage);
