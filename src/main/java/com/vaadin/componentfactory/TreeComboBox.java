@@ -23,13 +23,19 @@ package com.vaadin.componentfactory;
 import org.vaadin.tatu.Tree;
 
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Focusable;
 import com.vaadin.flow.component.HasElement;
+import com.vaadin.flow.component.HasHelper;
 import com.vaadin.flow.component.HasSize;
+import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.shared.HasTooltip;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HasHierarchicalDataProvider;
@@ -57,7 +63,8 @@ import com.vaadin.flow.theme.lumo.LumoIcon;
 @Tag("div")
 public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
         implements SingleSelect<TreeComboBox<T>, T>,
-        HasHierarchicalDataProvider<T>, Focusable, HasSize, HasElement {
+        HasHierarchicalDataProvider<T>, Focusable<TreeComboBox<T>>, HasSize,
+        HasElement, HasValidation, HasHelper, HasTooltip {
 
     public enum FilterMode {
         EXACT, STARTS_WITH, CONTAINS, EXACT_CASE, STARTS_WITH_CASE, CONTAINS_CASE
@@ -140,14 +147,17 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
                 });
         openButton.setIcon(LumoIcon.ANGLE_DOWN.create());
         openButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        openButton.setId("open-button");
         openButton.addClickListener(event -> {
             popup.setOpened(true);
         });
+        Div popupTarget = new Div();
+        popupTarget.setHeightFull();
+        popupTarget.setId("open-button");
         popup.setFor("open-button");
         popup.add(tree);
         tree.setHeightByRows(true);
-        filterField.setPrefixComponent(openButton);
+        filterField.setPrefixComponent(popupTarget);
+        filterField.setSuffixComponent(openButton);
         setWidth("300px");
         getElement().appendChild(filterField.getElement());
         getElement().appendChild(popup.getElement());
@@ -298,5 +308,76 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
      */
     public void setSelectOnlyLeafs(boolean selectOnlyLeafs) {
         tree.setSelectOnlyLeafs(selectOnlyLeafs);
+    }
+
+    /**
+     * Set icon as prefix component of the field.
+     * 
+     * @param component
+     *            Preferably a icon component
+     */
+    public void setIcon(Component component) {
+        component.setId("open-button");
+        filterField.setPrefixComponent(component);
+    }
+
+    /**
+     * When false clear button will not be visible, default true.
+     * 
+     * @param clearButtonVisible
+     *            boolean value.
+     */
+    public void setClearButtonVisible(boolean clearButtonVisible) {
+        filterField.setClearButtonVisible(clearButtonVisible);
+    }
+
+    @Override
+    public void setErrorMessage(String errorMessage) {
+        filterField.setErrorMessage(errorMessage);
+    }
+
+    @Override
+    public String getErrorMessage() {
+        return filterField.getErrorMessage();
+    }
+
+    @Override
+    public void setInvalid(boolean invalid) {
+        filterField.setInvalid(invalid);
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return filterField.isInvalid();
+    }
+
+    @Override
+    public void setHelperText(String helperText) {
+        filterField.setHelperText(helperText);
+    }
+
+    @Override
+    public String getHelperText() {
+        return filterField.getHelperText();
+    }
+
+    @Override
+    public void setHelperComponent(Component helperComponent) {
+        filterField.setHelperComponent(helperComponent);
+    }
+
+    @Override
+    public Component getHelperComponent() {
+        return filterField.getHelperComponent();
+    }
+
+    @Override
+    public Tooltip setTooltipText(String tooltipText) {
+        return filterField.setTooltipText(tooltipText);
+    }
+
+    @Override
+    public Tooltip getTooltip() {
+        return filterField.getTooltip();
     }
 }
