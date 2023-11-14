@@ -289,6 +289,19 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
         tree.setWidth(width);
     }
 
+    /**
+     * Sets the width of the Popup part.
+     * <p>
+     * Note: If setWidth is used, the Popup width be reset to width defined by
+     * setWidth.
+     * 
+     * @param width
+     *            the width to be set
+     */
+    public void setPopupWidth(String width) {
+        tree.setWidth(width);
+    }
+
     @Override
     public void setDataProvider(
             HierarchicalDataProvider<T, ?> hierarchicalDataProvider) {
@@ -380,4 +393,5 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
     public Tooltip getTooltip() {
         return filterField.getTooltip();
     }
+
 }
