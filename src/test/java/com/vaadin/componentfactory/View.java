@@ -40,9 +40,7 @@ public class View extends VerticalLayout {
         treeComboBox.setValue(departmentData
                 .getChildDepartments(departmentData.getRootDepartments().get(0))
                 .get(0));
-        treeComboBox.setTooltipText("Tooltip");
         treeComboBox.setHelperText("Helper");
-        treeComboBox.setPopupWidth("400px");
 
         add(treeComboBox, leafsOnly);
 
