@@ -1,5 +1,7 @@
 package com.vaadin.componentfactory;
 
+import java.util.Random;
+
 /*-
  * #%L
  * TreeComboBox
@@ -72,11 +74,14 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
 
     private ValueProvider<T, String> valueProvider;
 
+    private Random rand = new Random();
     private TextField filterField = new TextField();
     private Button openButton = new Button();
     private Popup popup = new Popup();
     private Tree<T> tree = null;
     private FilterMode filterMode = FilterMode.CONTAINS;
+
+    private String id;
 
     /**
      * Constructs a new TreeComboBox Component.
@@ -152,8 +157,9 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
         });
         Div popupTarget = new Div();
         popupTarget.setHeightFull();
-        popupTarget.setId("open-button");
-        popup.setFor("open-button");
+        id = randomId("open-button", 9);
+        popupTarget.setId(id);
+        popup.setFor(id);
         popup.add(tree);
         tree.setHeightByRows(true);
         filterField.setPrefixComponent(popupTarget);
@@ -330,7 +336,7 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
      *            Preferably a icon component
      */
     public void setIcon(Component component) {
-        component.setId("open-button");
+        component.setId(id);
         filterField.setPrefixComponent(component);
     }
 
@@ -359,6 +365,13 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
             filterField.getElement().executeJs(
                     "this.inputElement.removeAttribute('readonly');");
         }
+    }
+
+    private String randomId(String prefix, int chars) {
+        int limit = (int) (Math.pow(10, chars) - 1);
+        String key = "" + rand.nextInt(limit);
+        key = String.format("%" + chars + "s", key).replace(' ', '0');
+        return prefix + "-" + key;
     }
 
     @Override
