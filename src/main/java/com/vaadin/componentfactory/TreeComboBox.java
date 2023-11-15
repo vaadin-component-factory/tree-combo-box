@@ -216,7 +216,8 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
 
     @Override
     public void setValue(T value) {
-        tree.asSingleSelect().setValue(value);
+        tree.select(value);
+        filterField.setValue(this.valueProvider.apply(value));
     }
 
     @Override

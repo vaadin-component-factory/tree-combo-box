@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.Route;
 
 @Route("mixed")
@@ -23,20 +25,32 @@ public class Mixed extends Div {
                 return book.getName() + " (" + book.getPages() + " pages)";
             } else if (item instanceof Chapter) {
                 Chapter chapter = (Chapter) item;
-                return chapter.getName() + " (" + chapter.getPages()
-                        + " pages)";
+                return chapter.getBook().getName() + ": " + chapter.getName()
+                        + " (" + chapter.getPages() + " pages)";
             } else {
                 return item.getName();
             }
         });
         treeComboBox.setItems(library.getAuthors(), library::getChildren);
-        treeComboBox.setValue(
-                library.getChildren(library.getAuthors().get(0)).get(0));
+//        treeComboBox.setSelectOnlyLeafs(true);
+        TreeObject defaultValue = library
+                .getChildren(
+                        library.getChildren(library.getAuthors().get(0)).get(0))
+                .get(0);
+        treeComboBox.setValue(defaultValue);
         treeComboBox.setClearButtonVisible(false);
         treeComboBox.setDisableFiltering(true);
         treeComboBox.setIcon(VaadinIcon.BOOK.create());
         treeComboBox.setPopupWidth("400px");
-        add(treeComboBox);
+
+        Button button = new Button("Reset",
+                e -> treeComboBox.setValue(defaultValue));
+
+        treeComboBox.addValueChangeListener(e -> {
+            Notification.show(e.getValue().getName());
+        });
+
+        add(treeComboBox, button);
     }
 
     public class Library {
@@ -44,11 +58,11 @@ public class Mixed extends Div {
 
         public Library() {
             var numAuthors = rand.nextInt(4) + 2;
-            for (int i = 1; i < numAuthors; i++) {
+            for (int i = 0; i < numAuthors; i++) {
                 Author author = new Author();
                 author.setName("Author " + i);
                 var numBooks = rand.nextInt(4) + 2;
-                for (int j = 1; j < numBooks; j++) {
+                for (int j = 0; j < numBooks; j++) {
                     Book book = new Book(author);
                     book.setName("Book " + i + "/" + j);
                     books.add(book);
@@ -99,8 +113,8 @@ public class Mixed extends Div {
             setPages(pages);
             setAuthor(author);
             int chaps = rand.nextInt(4) + 1;
-            for (int i = 1; i < chaps; i++) {
-                Chapter chapter = new Chapter();
+            for (int i = 0; i < chaps; i++) {
+                Chapter chapter = new Chapter(this);
                 chapter.setName("Chapter " + i);
                 chapters.add(chapter);
             }
@@ -129,10 +143,11 @@ public class Mixed extends Div {
     }
 
     public class Chapter extends TreeObject {
-        int pages;
+        private int pages;
+        private Book book;
 
-        public Chapter() {
-            ;
+        public Chapter(Book book) {
+            this.book = book;
             setPages(rand.nextInt(10) + 1);
         }
 
@@ -144,5 +159,12 @@ public class Mixed extends Div {
             this.pages = pages;
         }
 
+        public Book getBook() {
+            return book;
+        }
+
+        public void setBook(Book book) {
+            this.book = book;
+        }
     }
 }
