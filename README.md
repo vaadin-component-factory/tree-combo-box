@@ -1,4 +1,4 @@
-# Component Factory TreeComboBox for Vaadin 14
+# Component Factory TreeComboBox for Vaadin 24
 
 This is hierarchical ComboBox type single select component. It currently works with in-memory data
 providers, i.e. TreeDataProvider, it supports filtering, but not adding new items on the fly.

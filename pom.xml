@@ -3,13 +3,13 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>treecombobox</artifactId>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <name>TreeComboBox</name>
     <description>ComboBox with hierarchy</description>
     <inceptionYear>2020</inceptionYear>
 
     <properties>
-        <vaadin.version>24.0.2</vaadin.version>
+        <vaadin.version>24.2.2</vaadin.version>
 
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -88,12 +88,12 @@
         <dependency>
             <groupId>com.vaadin.componentfactory</groupId>
             <artifactId>popup</artifactId>
-            <version>4.0.0</version>
+            <version>24.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
-            <version>3.0.1</version>
+            <version>3.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -105,18 +105,11 @@
             <artifactId>vaadin-testbench</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>3.8.1</version>
+            <version>5.4.1</version>
             <scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jsoup</groupId>
-					<artifactId>jsoup</artifactId>
-				</exclusion>
-			</exclusions>
         </dependency>
     </dependencies>
 
