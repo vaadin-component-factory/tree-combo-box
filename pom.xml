@@ -86,6 +86,11 @@
             <artifactId>vaadin-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.vaadin.tatu</groupId>
             <artifactId>tree</artifactId>
             <version>4.1.0</version>
