@@ -9,9 +9,9 @@ package com.vaadin.componentfactory;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,8 +21,6 @@ package com.vaadin.componentfactory;
  */
 
 import org.vaadin.tatu.Tree;
-
-import java.util.Random;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
@@ -35,7 +33,8 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.shared.HasTooltip;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.textfield.TextField;
@@ -56,7 +55,7 @@ import com.vaadin.flow.theme.lumo.LumoIcon;
  * This is hierarchical ComboBox type single select component. It currently
  * works with in-memory data providers, i.e. TreeDataProvider, it supports
  * filtering, but not adding new items on the fly.
- * 
+ *
  * @author Tatu Lund
  *
  * @param <T>
@@ -74,17 +73,15 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
 
     private ValueProvider<T, String> valueProvider;
 
-    private Random rand = new Random();
     private TextField filterField = new TextField();
     private Button openButton = new Button();
-    private Popup popup = new Popup();
+    private Popover popover;
     private Tree<T> tree = null;
     private FilterMode filterMode = FilterMode.CONTAINS;
-    private String id;
 
     /**
      * Constructs a new TreeComboBox Component.
-     * 
+     *
      * @param valueProvider
      *            the item caption provider to use, not <code>null</code>
      */
@@ -94,7 +91,7 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
         this.tree = new Tree<>(valueProvider);
         filterField.addValueChangeListener(event -> {
             if (event.isFromClient() && !event.getValue().isEmpty()) {
-                popup.setOpened(true);
+                popover.setOpened(true);
                 ((TreeDataProvider<T>) getDataProvider()).setFilter(item -> {
                     switch (filterMode) {
                     case EXACT_CASE:
@@ -137,7 +134,7 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
             if (!event.getSelected().isEmpty()) {
                 T value = event.getSelected().stream().findFirst().get();
                 filterField.setValue(this.valueProvider.apply(value));
-                popup.setOpened(false);
+                popover.setOpened(false);
                 filterField.focus();
                 fireEvent(new ComponentValueChangeEvent<>(this, this, value,
                         event.isFromClient()));
@@ -146,26 +143,72 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
 
         Registration reg = filterField.addKeyDownListener(Key.ARROW_DOWN,
                 event -> {
-                    popup.setOpened(true);
+                    popover.setOpened(true);
                     tree.focus();
                 });
         openButton.setIcon(LumoIcon.ANGLE_DOWN.create());
         openButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         openButton.addClickListener(event -> {
-            popup.setOpened(true);
+            popover.setOpened(!popover.isOpened());
         });
-        Div popupTarget = new Div();
-        popupTarget.setHeightFull();
-        id = randomId("open-button", 9);
-        popupTarget.setId(id);
-        popup.setFor(id);
-        popup.add(tree);
+
+        popover = new Popover();
+        popover.setTarget(filterField);
+        popover.setOpenOnClick(false);
+        popover.setPosition(PopoverPosition.BOTTOM_START);
+        popover.add(tree);
         tree.setAllRowsVisible(true);
-        filterField.setPrefixComponent(popupTarget);
+        tree.getStyle().set("overflow", "hidden");
         filterField.setSuffixComponent(openButton);
         setWidth("300px");
         getElement().appendChild(filterField.getElement());
-        getElement().appendChild(popup.getElement());
+        getElement().appendChild(popover.getElement());
+        // Style the popover to match V24 popup appearance
+        stylePopover();
+        styleTree();
+    }
+
+    private void stylePopover() {
+        // Pull the popover closer to the field (overlap helper text like V24)
+        // and remove padding inside the overlay content area.
+        popover.getElement().executeJs(
+                "this.style.setProperty('--vaadin-popover-offset-top', '-25px');" +
+                "this.style.setProperty('--vaadin-popover-offset-bottom', '-25px');" +
+                "this.addEventListener('opened-changed', (e) => {" +
+                "  if (!e.detail.value) return;" +
+                "  requestAnimationFrame(() => {" +
+                "    const overlay = this.$.overlay || " +
+                "      this.shadowRoot?.querySelector('vaadin-popover-overlay');" +
+                "    if (overlay) {" +
+                "      const content = overlay.$.content || " +
+                "        overlay.shadowRoot?.querySelector('[part=\"content\"]');" +
+                "      if (content) { content.style.padding = '0'; content.style.overflowX = 'hidden'; }" +
+                "    }" +
+                "  });" +
+                "});");
+    }
+
+    private void styleTree() {
+        // Remove grid border and row separators to match V24 appearance.
+        // Uses MutationObserver to wait for the grid element to render.
+        tree.getElement().executeJs(
+                "const injectStyles = (grid) => {" +
+                "  grid.style.border = 'none';" +
+                "  if (grid.shadowRoot) {" +
+                "    const s = document.createElement('style');" +
+                "    s.textContent = ':host { border: none !important; overflow: hidden; } " +
+                "      [part~=\"cell\"] { border-bottom: none !important; } " +
+                "      [part~=\"row\"] { border-bottom: none !important; }';" +
+                "    grid.shadowRoot.appendChild(s);" +
+                "  }" +
+                "};" +
+                "const grid = this.querySelector('vaadin-grid');" +
+                "if (grid) { injectStyles(grid); return; }" +
+                "const obs = new MutationObserver(() => {" +
+                "  const g = this.querySelector('vaadin-grid');" +
+                "  if (g) { obs.disconnect(); injectStyles(g); }" +
+                "});" +
+                "obs.observe(this, { childList: true, subtree: true });");
     }
 
     private void selectFilteredItem(T item) {
@@ -225,16 +268,17 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
     }
 
     /**
-     * Sets the width of the Popup part.
+     * Sets the width of the Popover part.
      * <p>
-     * Note: If setWidth is used, the Popup width be reset to width defined by
+     * Note: If setWidth is used, the Popover width be reset to width defined by
      * setWidth.
-     * 
+     *
      * @param width
      *            the width to be set
      */
     public void setPopupWidth(String width) {
         tree.setWidth(width);
+        popover.setWidth(width);
     }
 
     public void setDataProvider(DataProvider<T, ?> dataProvider) {
@@ -295,9 +339,9 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
      * If the provided {@code width} value is {@literal null} then width is
      * removed.
      * <p>
-     * Note: The content in popup needs an explicit width, hence "100%" does not
+     * Note: The content in popover needs an explicit width, hence "100%" does not
      * work.
-     * 
+     *
      * @param width
      *            the width to set, may be {@code null}
      */
@@ -305,6 +349,9 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
     public void setWidth(String width) {
         filterField.setWidth(width);
         tree.setWidth(width);
+        if (popover != null) {
+            popover.setWidth(width);
+        }
     }
 
     @Override
@@ -321,7 +368,7 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
 
     /**
      * When true allow selecting only the leaf nodes
-     * 
+     *
      * @param selectOnlyLeafs
      *            boolean value.
      */
@@ -331,18 +378,17 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
 
     /**
      * Set icon as prefix component of the field.
-     * 
+     *
      * @param component
      *            Preferably a icon component
      */
     public void setIcon(Component component) {
-        component.setId(id);
         filterField.setPrefixComponent(component);
     }
 
     /**
      * When false clear button will not be visible, default true.
-     * 
+     *
      * @param clearButtonVisible
      *            boolean value.
      */
@@ -353,7 +399,7 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
     /**
      * When set to true, user cannot type into input field, only select values
      * from the popup.
-     * 
+     *
      * @param disableFiltering
      *            boolean value
      */
@@ -365,13 +411,6 @@ public class TreeComboBox<T> extends AbstractField<TreeComboBox<T>, T>
             filterField.getElement().executeJs(
                     "this.inputElement.removeAttribute('readonly');");
         }
-    }
-
-    private String randomId(String prefix, int chars) {
-        int limit = (int) (Math.pow(10, chars) - 1);
-        String key = "" + rand.nextInt(limit);
-        key = String.format("%" + chars + "s", key).replace(' ', '0');
-        return prefix + "-" + key;
     }
 
     @Override
